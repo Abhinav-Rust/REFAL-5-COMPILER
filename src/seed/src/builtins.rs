@@ -16,8 +16,14 @@ pub fn call_builtin(_evaluator: &Evaluator, name: &str, args: Vec<Value>) -> Res
                 match arg {
                     Value::Symbol(s) => out.push_str(s),
                     Value::Number(n) => out.push_str(&n.to_string()),
-                    Value::StringLit(s) => out.push_str(s),
-                    Value::Bracket(inner) => out.push_str(&format!("({:?})", inner)), // Simple rep for now
+                    Value::StringLit(s) => {
+                        if s == "\n" {
+                             out.push_str("\\n");
+                        } else {
+                             out.push_str(s);
+                        }
+                    },
+                    Value::Bracket(inner) => out.push_str(&format!("{:?}", inner)),
                 }
                 out.push(' ');
             }
@@ -29,8 +35,7 @@ pub fn call_builtin(_evaluator: &Evaluator, name: &str, args: Vec<Value>) -> Res
             match std::io::stdin().read_line(&mut input) {
                 Ok(_) => {
                     let mut vals = vec![];
-                    // Very simple naive string to characters parsing for Card right now
-                    for ch in input.trim_end().chars() {
+                    for ch in input.chars() {
                          vals.push(Value::StringLit(ch.to_string()));
                     }
                     Ok(vals)
@@ -38,8 +43,19 @@ pub fn call_builtin(_evaluator: &Evaluator, name: &str, args: Vec<Value>) -> Res
                 Err(_) => Ok(vec![]),
             }
         }
+        "Implode" => {
+            let mut result = String::new();
+            for arg in args {
+                match arg {
+                    Value::Symbol(s) => result.push_str(&s),
+                    Value::StringLit(s) => result.push_str(&s),
+                    Value::Number(n) => result.push_str(&n.to_string()),
+                    _ => return Err("Implode can only take sequence of symbols/strings".to_string()),
+                }
+            }
+            Ok(vec![Value::Symbol(result)])
+        }
         "Open" => {
-            // <Open 'r' 1 'filename.txt'>
             if args.len() < 3 {
                 return Err("Open expects at least 3 arguments".to_string());
             }
@@ -77,7 +93,6 @@ pub fn call_builtin(_evaluator: &Evaluator, name: &str, args: Vec<Value>) -> Res
             }
         }
         "Get" => {
-             // <Get 1>
              if args.len() != 1 {
                  return Err("Get expects 1 argument".to_string());
              }
@@ -89,8 +104,6 @@ pub fn call_builtin(_evaluator: &Evaluator, name: &str, args: Vec<Value>) -> Res
              let mut map = OPEN_FILES.lock().unwrap();
              if let Some(file) = map.get_mut(&fd) {
                  let mut contents = String::new();
-                 // Very simplistic: reading entire file. In real Refal-5 <Get> reads one line/expr
-                 // Modifying to read a line would require BufReader caching
                  match file.read_to_string(&mut contents) {
                      Ok(_) => {
                          let mut vals = vec![];
@@ -106,7 +119,6 @@ pub fn call_builtin(_evaluator: &Evaluator, name: &str, args: Vec<Value>) -> Res
              }
         }
         "Put" => {
-             // <Put 1 e.Data>
              if args.is_empty() {
                  return Err("Put expects at least 1 argument".to_string());
              }

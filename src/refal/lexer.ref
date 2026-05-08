@@ -1,0 +1,140 @@
+/*
+    REFAL-5 STAGE 1 LEXER
+*/
+
+$ENTRY Go {
+    = <Open 'r' 1 'src/refal/lexer_test.ref'>
+      <Prout <LexerLoop <Get 1>>>
+      <Close 1>;
+}
+
+$ENTRY LexerLoop {
+    /* Whitespace skipping */
+    ' ' e.Rest = <LexerLoop e.Rest>;
+    '\t' e.Rest = <LexerLoop e.Rest>;
+    '\n' e.Rest = <LexerLoop e.Rest>;
+    '\r' e.Rest = <LexerLoop e.Rest>;
+
+    /* Block Comments */
+    '/' '*' e.Rest = <SkipBlockComment ('1') e.Rest>;
+
+    /* Line Comments */
+    '*' e.Rest = <SkipLineComment e.Rest>;
+
+    /* Brackets and Punctuation Symbols */
+    '(' e.Rest = ('Symbol' 'LParen') <LexerLoop e.Rest>;
+    ')' e.Rest = ('Symbol' 'RParen') <LexerLoop e.Rest>;
+    '<' e.Rest = ('Symbol' 'LAngle') <LexerLoop e.Rest>;
+    '>' e.Rest = ('Symbol' 'RAngle') <LexerLoop e.Rest>;
+    '{' e.Rest = ('Symbol' 'LBrace') <LexerLoop e.Rest>;
+    '}' e.Rest = ('Symbol' 'RBrace') <LexerLoop e.Rest>;
+    '=' e.Rest = ('Symbol' 'Equal') <LexerLoop e.Rest>;
+    ';' e.Rest = ('Symbol' 'Semi') <LexerLoop e.Rest>;
+    ',' e.Rest = ('Symbol' 'Comma') <LexerLoop e.Rest>;
+    ':' e.Rest = ('Symbol' 'Colon') <LexerLoop e.Rest>;
+
+    /* Variables: s. t. e. */
+    's' '.' e.Rest = <ParseVariable 's' e.Rest>;
+    't' '.' e.Rest = <ParseVariable 't' e.Rest>;
+    'e' '.' e.Rest = <ParseVariable 'e' e.Rest>;
+
+    /* Keywords */
+    '$' 'E' 'N' 'T' 'R' 'Y' e.Rest = ('Keyword' 'ENTRY') <LexerLoop e.Rest>;
+
+    /* Strings */
+    "'" e.Rest = <ParseStringLit "'" () e.Rest>;
+    '"' e.Rest = <ParseStringLit '"' () e.Rest>;
+
+    /* Identifiers and Numbers */
+    s.Char e.Rest , <IsAlpha s.Char> : 'True' = <ParseIdent (s.Char) e.Rest>;
+    s.Char e.Rest , <IsDigit s.Char> : 'True' = <ParseNumber (s.Char) e.Rest>;
+
+    /* Fallback */
+    /* If the char is unknown, emit it as an unknown symbol bracket rather than string lit */
+    s.Char e.Rest = ('Unknown' s.Char) <LexerLoop e.Rest>;
+
+    /* End of stream */
+    /* Empty input matches base case */
+    e.Empty = ;
+}
+
+/* --- Block Comments --- */
+SkipBlockComment {
+    () e.Rest = <LexerLoop e.Rest>;
+    (e.Depth) '/' '*' e.Rest = <SkipBlockComment (e.Depth '1') e.Rest>;
+    (e.Depth '1') '*' '/' e.Rest = <SkipBlockComment (e.Depth) e.Rest>;
+    (e.Depth) s.Char e.Rest = <SkipBlockComment (e.Depth) e.Rest>;
+    (e.Depth) = ('Error' 'UnexpectedEOF');
+}
+
+/* --- Line Comments --- */
+SkipLineComment {
+    '\n' e.Rest = <LexerLoop e.Rest>;
+    s.Char e.Rest = <SkipLineComment e.Rest>;
+    e.Empty = ('Error' 'EOFInLineComment');
+}
+
+/* --- Variables --- */
+ParseVariable {
+    s.Type s.Char e.Rest , <IsAlphaNum s.Char> : 'True' = <ParseVariableInner s.Type (s.Char) e.Rest>;
+}
+
+ParseVariableInner {
+    s.Type (e.Name) s.Char e.Rest , <IsAlphaNum s.Char> : 'True' = <ParseVariableInner s.Type (e.Name s.Char) e.Rest>;
+    s.Type (e.Name) e.Rest = ('Variable' <Implode s.Type> <Implode e.Name>) <LexerLoop e.Rest>;
+}
+
+/* --- Strings --- */
+ParseStringLit {
+    s.Quote (e.Str) s.Quote e.Rest = ('String' <Implode e.Str>) <LexerLoop e.Rest>;
+
+    /* Escapes */
+    s.Quote (e.Str) '\\' 'n' e.Rest = <ParseStringLit s.Quote (e.Str '\n') e.Rest>;
+    s.Quote (e.Str) '\\' 't' e.Rest = <ParseStringLit s.Quote (e.Str '\t') e.Rest>;
+    s.Quote (e.Str) '\\' '\\' e.Rest = <ParseStringLit s.Quote (e.Str '\\') e.Rest>;
+    s.Quote (e.Str) '\\' '"' e.Rest = <ParseStringLit s.Quote (e.Str '"') e.Rest>;
+    s.Quote (e.Str) '\\' "'" e.Rest = <ParseStringLit s.Quote (e.Str "'") e.Rest>;
+
+    s.Quote (e.Str) s.Char e.Rest = <ParseStringLit s.Quote (e.Str s.Char) e.Rest>;
+    s.Quote (e.Str) = ('String' <Implode e.Str>);
+}
+
+/* --- Identifiers --- */
+ParseIdent {
+    (e.Ident) s.Char e.Rest , <IsAlphaNum s.Char> : 'True' = <ParseIdent (e.Ident s.Char) e.Rest>;
+    (e.Ident) e.Rest = ('Ident' <Implode e.Ident>) <LexerLoop e.Rest>;
+}
+
+/* --- Numbers --- */
+ParseNumber {
+    (e.Num) s.Char e.Rest , <IsDigit s.Char> : 'True' = <ParseNumber (e.Num s.Char) e.Rest>;
+    (e.Num) e.Rest = ('Number' <Implode e.Num>) <LexerLoop e.Rest>;
+}
+
+/* --- Character Classes --- */
+IsAlpha {
+    'a' = 'True'; 'b' = 'True'; 'c' = 'True'; 'd' = 'True'; 'e' = 'True'; 'f' = 'True';
+    'g' = 'True'; 'h' = 'True'; 'i' = 'True'; 'j' = 'True'; 'k' = 'True'; 'l' = 'True';
+    'm' = 'True'; 'n' = 'True'; 'o' = 'True'; 'p' = 'True'; 'q' = 'True'; 'r' = 'True';
+    's' = 'True'; 't' = 'True'; 'u' = 'True'; 'v' = 'True'; 'w' = 'True'; 'x' = 'True';
+    'y' = 'True'; 'z' = 'True';
+    'A' = 'True'; 'B' = 'True'; 'C' = 'True'; 'D' = 'True'; 'E' = 'True'; 'F' = 'True';
+    'G' = 'True'; 'H' = 'True'; 'I' = 'True'; 'J' = 'True'; 'K' = 'True'; 'L' = 'True';
+    'M' = 'True'; 'N' = 'True'; 'O' = 'True'; 'P' = 'True'; 'Q' = 'True'; 'R' = 'True';
+    'S' = 'True'; 'T' = 'True'; 'U' = 'True'; 'V' = 'True'; 'W' = 'True'; 'X' = 'True';
+    'Y' = 'True'; 'Z' = 'True';
+    '_' = 'True'; '-' = 'True';
+    s.Char = 'False';
+}
+
+IsDigit {
+    '0' = 'True'; '1' = 'True'; '2' = 'True'; '3' = 'True'; '4' = 'True';
+    '5' = 'True'; '6' = 'True'; '7' = 'True'; '8' = 'True'; '9' = 'True';
+    s.Char = 'False';
+}
+
+IsAlphaNum {
+    s.Char , <IsAlpha s.Char> : 'True' = 'True';
+    s.Char , <IsDigit s.Char> : 'True' = 'True';
+    s.Char = 'False';
+}

@@ -1,0 +1,7 @@
+/* Outer block comment
+   /* Inner block comment */
+   still outer comment
+*/
+$ENTRY Go {
+    (e.1) = <Prout 'Hello\nWorld' "Escape\"Quote" 42>; * Line comment
+}
