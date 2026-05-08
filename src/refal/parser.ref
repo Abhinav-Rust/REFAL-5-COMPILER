@@ -1,0 +1,103 @@
+/*
+    REFAL-5 STAGE 1 PARSER
+*/
+
+$ENTRY Go {
+    = <Prout <ParseProgram
+        ('Keyword' 'ENTRY') ('Ident' 'Go') ('Symbol' 'LBrace')
+        ('Symbol' 'LParen') ('Variable' 'e' '1') ('Symbol' 'RParen') ('Symbol' 'Equal') ('Ident' 'Prout') ('Symbol' 'Semi')
+        ('Symbol' 'RBrace')
+      >>;
+}
+
+$ENTRY ParseProgram {
+    e.Tokens = ('Program' <ParseFunctions e.Tokens>);
+}
+
+ParseFunctions {
+    /* Empty base case */
+    = /* Empty result */;
+
+    /* Optional $ENTRY keyword */
+    ('Keyword' 'ENTRY') ('Ident' e.Name) ('Symbol' 'LBrace') e.Rest
+        = <ParseFunctionInner 'True' (e.Name) e.Rest>;
+
+    /* Function without $ENTRY */
+    ('Ident' e.Name) ('Symbol' 'LBrace') e.Rest
+        = <ParseFunctionInner 'False' (e.Name) e.Rest>;
+}
+
+ParseFunctionInner {
+    s.IsEntry (e.Name) e.Tokens , <ParseRules e.Tokens> : (e.Rules) ('Symbol' 'RBrace') e.Rest
+        = ('Function' (e.Name) s.IsEntry e.Rules) <ParseFunctions e.Rest>;
+}
+
+ParseRules {
+    /* Empty block */
+    ('Symbol' 'RBrace') e.Rest = () ('Symbol' 'RBrace') e.Rest;
+
+    /* Single rule parsing */
+    e.Tokens , <ParseRule e.Tokens> : (e.Rule) e.Rest = <ParseRulesInner (e.Rule) e.Rest>;
+}
+
+ParseRulesInner {
+    (e.RuleList) ('Symbol' 'RBrace') e.Rest = (e.RuleList) ('Symbol' 'RBrace') e.Rest;
+    (e.RuleList) e.Tokens , <ParseRule e.Tokens> : (e.Rule) e.Rest = <ParseRulesInner (e.RuleList e.Rule) e.Rest>;
+}
+
+ParseRule {
+    /* Rule format: Pattern , Conditions = Result ; */
+    /* But since conditions are optional, we try with conditions first then without */
+    e.Tokens = <ParseRuleTry e.Tokens>;
+}
+
+ParseRuleTry {
+    /* Try with Conditions */
+    e.Tokens , <ParsePattern e.Tokens> : (e.Pattern) ('Symbol' 'Comma') e.Rest
+        , <ParseConditions e.Rest> : (e.Conditions) ('Symbol' 'Equal') e.RestAfterCond
+        , <ParseResult e.RestAfterCond> : (e.Result) ('Symbol' 'Semi') e.AfterRule
+        = (('Rule' ('Pattern' e.Pattern) ('Conditions' e.Conditions) ('Result' e.Result))) e.AfterRule;
+
+    /* Try without Conditions */
+    e.Tokens , <ParsePattern e.Tokens> : (e.Pattern) ('Symbol' 'Equal') e.Rest
+        , <ParseResult e.Rest> : (e.Result) ('Symbol' 'Semi') e.AfterRule
+        = (('Rule' ('Pattern' e.Pattern) ('Conditions') ('Result' e.Result))) e.AfterRule;
+}
+
+ParseConditions {
+    e.Tokens , <ParsePattern e.Tokens> : (e.CondResult) ('Symbol' 'Colon') e.Rest
+        , <ParsePattern e.Rest> : (e.CondPattern) ('Symbol' 'Comma') e.NextCond
+        , <ParseConditions e.NextCond> : (e.RestConditions) e.AfterConds
+        = (('Condition' ('Result' e.CondResult) ('Pattern' e.CondPattern)) e.RestConditions) e.AfterConds;
+
+    e.Tokens , <ParsePattern e.Tokens> : (e.CondResult) ('Symbol' 'Colon') e.Rest
+        , <ParsePattern e.Rest> : (e.CondPattern) e.AfterConds
+        = (('Condition' ('Result' e.CondResult) ('Pattern' e.CondPattern))) e.AfterConds;
+}
+
+/* For now, simplified Pattern and Result matchers */
+ParsePattern {
+    ('Symbol' 'Equal') e.Rest = () ('Symbol' 'Equal') e.Rest;
+    ('Symbol' 'Comma') e.Rest = () ('Symbol' 'Comma') e.Rest;
+    ('Symbol' 'Colon') e.Rest = () ('Symbol' 'Colon') e.Rest;
+    t.Token e.Rest = <ParsePatternInner (t.Token) e.Rest>;
+}
+
+ParsePatternInner {
+    (e.List) ('Symbol' 'Equal') e.Rest = (e.List) ('Symbol' 'Equal') e.Rest;
+    (e.List) ('Symbol' 'Comma') e.Rest = (e.List) ('Symbol' 'Comma') e.Rest;
+    (e.List) ('Symbol' 'Colon') e.Rest = (e.List) ('Symbol' 'Colon') e.Rest;
+    (e.List) t.Token e.Rest = <ParsePatternInner (e.List t.Token) e.Rest>;
+}
+
+ParseResult {
+    ('Symbol' 'Semi') e.Rest = () ('Symbol' 'Semi') e.Rest;
+    ('Symbol' 'Equal') e.Rest = () ('Symbol' 'Equal') e.Rest;
+    t.Token e.Rest = <ParseResultInner (t.Token) e.Rest>;
+}
+
+ParseResultInner {
+    (e.List) ('Symbol' 'Semi') e.Rest = (e.List) ('Symbol' 'Semi') e.Rest;
+    (e.List) ('Symbol' 'Equal') e.Rest = (e.List) ('Symbol' 'Equal') e.Rest;
+    (e.List) t.Token e.Rest = <ParseResultInner (e.List t.Token) e.Rest>;
+}
