@@ -20,16 +20,16 @@ ParseFunctions {
 
     /* Optional $ENTRY keyword */
     ('Keyword' 'ENTRY') ('Ident' e.Name) ('Symbol' 'LBrace') e.Rest
-        = <ParseFunctionInner 'True' (e.Name) e.Rest>;
+        = <ParseFunctionInner 'True' ('Ident' e.Name) e.Rest>;
 
     /* Function without $ENTRY */
     ('Ident' e.Name) ('Symbol' 'LBrace') e.Rest
-        = <ParseFunctionInner 'False' (e.Name) e.Rest>;
+        = <ParseFunctionInner 'False' ('Ident' e.Name) e.Rest>;
 }
 
 ParseFunctionInner {
-    s.IsEntry (e.Name) e.Tokens , <ParseRules e.Tokens> : (e.Rules) ('Symbol' 'RBrace') e.Rest
-        = ('Function' (e.Name) s.IsEntry e.Rules) <ParseFunctions e.Rest>;
+    s.IsEntry t.Name e.Tokens , <ParseRules e.Tokens> : (e.Rules) ('Symbol' 'RBrace') e.Rest
+        = ('Function' t.Name ('Entry' s.IsEntry) e.Rules) <ParseFunctions e.Rest>;
 }
 
 ParseRules {
