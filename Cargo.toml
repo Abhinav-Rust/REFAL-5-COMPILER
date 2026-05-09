@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "src/seed",
+    "src/lsp"
+]
+resolver = "2"
