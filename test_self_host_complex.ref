@@ -1,0 +1,22 @@
+$ENTRY Go {
+    = <Open 'r' 1 'test_self_host_complex.ref'>
+      <Prout <ParseProgram <FilterTokens <LexerLoop <Get 1>>>>>
+      <Close 1>;
+}
+FilterTokens {
+    ('Ident' e.Val) e.Rest = ('Ident' e.Val) <FilterTokens e.Rest>;
+    ('Symbol' e.Val) e.Rest = ('Symbol' e.Val) <FilterTokens e.Rest>;
+    ('Keyword' e.Val) e.Rest = ('Keyword' e.Val) <FilterTokens e.Rest>;
+    ('Variable' e.Val) e.Rest = ('Variable' e.Val) <FilterTokens e.Rest>;
+    ('Number' e.Val) e.Rest = ('Number' e.Val) <FilterTokens e.Rest>;
+    ('String' e.Val) e.Rest = ('String' e.Val) <FilterTokens e.Rest>;
+    t.Unknown e.Rest = <FilterTokens e.Rest>;
+    = ;
+}
+ParseNested {
+    (t.Target) (e.List) t.Target e.Rest = (e.List) t.Target e.Rest;
+    (t.Target) (e.List) ('Symbol' 'LParen') e.Rest
+        , <ParseNested (('Symbol' 'RParen')) () e.Rest> : (e.Inner) ('Symbol' 'RParen') e.After
+        = <ParseNested (t.Target) (e.List ('Bracket' e.Inner)) e.After>;
+    (t.Target) (e.List) t.Token e.Rest = <ParseNested (t.Target) (e.List t.Token) e.Rest>;
+}
