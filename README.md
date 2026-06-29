@@ -15,17 +15,17 @@
 
 ## What Is Refal?
 
-r<b>EFAL</b> (r<b>E</b>cursive <b>F</b>unctions <b>A</b>lgorithmic <b>L</b>anguage) is one of the oldest high-level programming languages still in active scholarly use. It was created in the Soviet Union in the 1960s by Valentin Turchin as a language for symbolic computation and meta-programming — tasks like writing compilers, transforming programs, and working with structured symbolic data. Unlike most languages of its era, r<b>EFAL</b> was not built around numbers or sequential instructions. It was built around *rewriting*: you describe patterns that match expressions, and the language transforms them according to your rules.
+**Refal** (REcursive Functions Algorithmic Language) is one of the oldest high-level programming languages still in active scholarly use. It was created in the Soviet Union in the 1960s by Valentin Turchin as a language for symbolic computation and meta-programming — tasks like writing compilers, transforming programs, and working with structured symbolic data. Unlike most languages of its era, Refal was not built around numbers or sequential instructions. It was built around *rewriting*: you describe patterns that match expressions, and the language transforms them according to your rules.
 
-r<b>EFAL</b>’s computational model is deceptively powerful. A r<b>EFAL</b> program is a set of *functions*, each consisting of ordered *sentences*. A sentence is a pattern on the left and a result expression on the right. The runtime scans an *active expression* — a chain of symbols and structured brackets — matches it against available patterns, and replaces the matched portion with the result. This process repeats until no active calls remain. The result is a language that feels somewhere between Prolog (pattern matching), Haskell (functional composition), and Lisp (symbolic data), but with its own distinct flavour rooted in pure term rewriting.
+Refal’s computational model is deceptively powerful. A Refal program is a set of *functions*, each consisting of ordered *sentences*. A sentence is a pattern on the left and a result expression on the right. The runtime scans an *active expression* — a chain of symbols and structured brackets — matches it against available patterns, and replaces the matched portion with the result. This process repeats until no active calls remain. The result is a language that feels somewhere between Prolog (pattern matching), Haskell (functional composition), and Lisp (symbolic data), but with its own distinct flavour rooted in pure term rewriting.
 
-**Classic r<b>EFAL</b>-5** is the most widely documented dialect, defined by Sergei Romanenko’s specification. It is the dialect this compiler targets. The ideas behind r<b>EFAL</b> also gave Turchin the foundation for **sup<b>ER</b>compilation** — a powerful program transformation technique in which an interpreter symbolically drives its own execution, folding repeated configurations into loops and eliminating entire layers of abstraction at compile time. sup<b>ER</b>compilation remains an active area of research in program optimisation and partial evaluation. Despite r<b>EFAL</b>’s age, its core ideas are as relevant as ever: symbolic pattern matching is the right tool for a broad class of problems in language processing, AI, theorem proving, and formal verification. This project exists to make r<b>EFAL</b>-5 accessible to a modern developer with a modern toolchain — not as a museum piece, but as a practical programming tool.
+**Classic Refal-5** is the most widely documented dialect, defined by Sergei Romanenko’s specification. It is the dialect this compiler targets. The ideas behind Refal also gave Turchin the foundation for **SUPERCOMPILATION** — a powerful program transformation technique in which an interpreter symbolically drives its own execution, folding repeated configurations into loops and eliminating entire layers of abstraction at compile time. **SUPERCOMPILATION** remains an active area of research in program optimisation and partial evaluation. Despite Refal’s age, its core ideas are as relevant as ever: symbolic pattern matching is the right tool for a broad class of problems in language processing, AI, theorem proving, and formal verification. This project exists to make Refal-5 accessible to a modern developer with a modern toolchain — not as a museum piece, but as a practical programming tool.
 
 ---
 
 ## A Taste of Refal
 
-Below is a valid r<b>EFAL</b>-5 program. The `$ENTRY Go` function is the program’s entry point. `Prout` is a built-in that prints a character string.
+Below is a valid Refal-5 program. The `$ENTRY Go` function is the program’s entry point. `Prout` is a built-in that prints a character string.
 
 ```
 $EXTERN Prout;
@@ -47,30 +47,30 @@ Reverse {
 }
 ```
 
-Variables in r<b>EFAL</b> carry their type in their prefix: `s.` matches a single symbol, `e.` matches any expression (zero or more terms), and `t.` matches a single term (which may itself be a bracketed structure). This typed variable system is what makes r<b>EFAL</b>’s pattern matching both precise and expressive.
+Variables in Refal carry their type in their prefix: `s.` matches a single symbol, `e.` matches any expression (zero or more terms), and `t.` matches a single term (which may itself be a bracketed structure). This typed variable system is what makes Refal’s pattern matching both precise and expressive.
 
 ---
 
 ## This Project
 
-r<b>EFAL</b> deserves a compiler that feels usable in 2026: clear documentation, a predictable command-line interface, strong diagnostics, real tests, and a path to practical code generation. This repository is a ground-up, clean-room rebuild toward that goal — independently authored, with production standards from the first commit.
+Refal deserves a compiler that feels usable in 2026: clear documentation, a predictable command-line interface, strong diagnostics, real tests, and a path to practical code generation. This repository is a ground-up, clean-room rebuild toward that goal — independently authored, with production standards from the first commit.
 
-The project starts with a robust bootstrap front end written in Rust and grows toward a self-hosting r<b>EFAL</b> compiler with production backends.
+The project starts with a robust bootstrap front end written in Rust and grows toward a self-hosting Refal compiler with production backends.
 
 ### Goals
 
-- Implement Classic r<b>EFAL</b>-5 semantics with care and completeness.
+- Implement Classic Refal-5 semantics with care and completeness.
 - Provide a polished compiler CLI for real projects.
 - Build excellent parser and semantic diagnostics.
 - Support interpreter-driven development.
-- Lower r<b>EFAL</b> into a documented Core r<b>EFAL</b> representation.
+- Lower Refal into a documented Core Refal representation.
 - Generate practical production code through a native backend.
 - Keep the implementation clean-room and independently authored.
 - Maintain public-repo quality from the first commit onward.
 
 ### Non-Goals
 
-- This is not a copy of another r<b>EFAL</b> compiler.
+- This is not a copy of another Refal compiler.
 - This is not a thin demo interpreter.
 - This is not an academic-only artifact.
 - This repository will not claim self-hosting or production readiness before tests prove it.
@@ -79,7 +79,7 @@ The project starts with a robust bootstrap front end written in Rust and grows t
 
 ## Project Status
 
-**Milestone 1 is complete.** Work is currently focused on closing Milestone 2 against the [Classic r<b>EFAL</b>-5 frontend coverage matrix](docs/FRONTEND-COVERAGE.md). See the full [Roadmap](docs/ROADMAP.md) for planned milestones.
+**Milestone 1 is complete.** Work is currently focused on closing Milestone 2 against the [Classic Refal-5 frontend coverage matrix](docs/FRONTEND-COVERAGE.md). See the full [Roadmap](docs/ROADMAP.md) for planned milestones.
 
 | Component | Status |
 |---|---|
@@ -95,7 +95,7 @@ The project starts with a robust bootstrap front end written in Rust and grows t
 | Semantic checker (`refal-semantics`) | 🔶 Initial — entry points, declarations, unbound variables |
 | Diagnostics with source positions | 🔶 Initial |
 | Golden test suite | 🔷 Planned for Milestone 2 |
-| Core r<b>EFAL</b> lowering | 🔷 Planned for Milestone 3 |
+| Core Refal lowering | 🔷 Planned for Milestone 3 |
 | Native backend / code generation | 🔷 Planned for later milestones |
 
 ---
@@ -158,7 +158,7 @@ cargo run -p refal-cli -- dump-ast examples/hello.ref
 cargo run -p refal-cli -- run examples/hello.ref
 ```
 
-The CLI and interpreter are at an initial stage. Not all r<b>EFAL</b>-5 programs will execute correctly yet. See the [frontend coverage matrix](docs/FRONTEND-COVERAGE.md) for what is currently supported.
+The CLI and interpreter are at an initial stage. Not all Refal-5 programs will execute correctly yet. See the [frontend coverage matrix](docs/FRONTEND-COVERAGE.md) for what is currently supported.
 
 ---
 
