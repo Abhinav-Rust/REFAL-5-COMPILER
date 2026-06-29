@@ -71,7 +71,7 @@ impl<'a> Lexer<'a> {
             return Ok(token);
         }
 
-        self.skip_ignored();
+        self.skip_ignored()?;
         let start = self.cursor;
         let Some(ch) = self.bump() else {
             return Ok(Token {
@@ -207,10 +207,11 @@ impl<'a> Lexer<'a> {
         })
     }
 
-    fn skip_ignored(&mut self) {
+    fn skip_ignored(&mut self) -> Result<(), LexerError> {
         loop {
             self.take_while(char::is_whitespace);
             if self.source[self.cursor..].starts_with("/*") {
+                let start = self.cursor;
                 self.cursor += 2;
                 while self.cursor < self.source.len()
                     && !self.source[self.cursor..].starts_with("*/")
@@ -219,10 +220,18 @@ impl<'a> Lexer<'a> {
                 }
                 if self.source[self.cursor..].starts_with("*/") {
                     self.cursor += 2;
+                } else {
+                    return Err(LexerError {
+                        message: "unterminated block comment".to_string(),
+                        span: Span {
+                            start,
+                            end: self.cursor,
+                        },
+                    });
                 }
                 continue;
             }
-            break;
+            return Ok(());
         }
     }
 
@@ -297,5 +306,15 @@ mod tests {
     fn rejects_empty_variable_name() {
         let error = Lexer::new("e.").tokenize().unwrap_err();
         assert!(error.message.contains("missing a name"));
+    }
+
+    #[test]
+    fn rejects_unterminated_block_comment() {
+        let error = Lexer::new("$ENTRY Go { =; } /* unfinished")
+            .tokenize()
+            .unwrap_err();
+
+        assert_eq!(error.message, "unterminated block comment");
+        assert_eq!(error.span, Span { start: 17, end: 30 });
     }
 }

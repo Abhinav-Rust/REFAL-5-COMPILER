@@ -1,12 +1,13 @@
 use std::{env, fs, process};
 
 use refal_ast::Span as AstSpan;
+use refal_runtime::{Evaluator, Value};
 use refal_syntax::{Lexer, Parser};
 
 fn main() {
     let mut args = env::args().skip(1);
     let Some(command) = args.next() else {
-        eprintln!("Usage: refal <check|dump-ast> <file.ref>");
+        eprintln!("Usage: refal <check|dump-ast|run> <file.ref>");
         process::exit(2);
     };
     let Some(path) = args.next() else {
@@ -63,11 +64,42 @@ fn main() {
     match command.as_str() {
         "check" => println!("{path}: check ok"),
         "dump-ast" => println!("{program:#?}"),
+        "run" => run_program(&program),
         other => {
             eprintln!("unknown command `{other}`");
             process::exit(2);
         }
     }
+}
+
+fn run_program(program: &refal_ast::Program) {
+    let evaluator = Evaluator::new(program);
+    if let Err(error) = evaluator.evaluate_entry(&[]) {
+        eprintln!("runtime error: {error}");
+        process::exit(1);
+    }
+
+    for expression in evaluator.captured_output() {
+        println!("{}", render_values(&expression));
+    }
+}
+
+fn render_values(values: &[Value]) -> String {
+    let mut output = String::new();
+    for value in values {
+        match value {
+            Value::Char(ch) => output.push(*ch),
+            Value::Identifier(identifier) | Value::Number(identifier) => {
+                output.push_str(identifier);
+            }
+            Value::Bracket(inner) => {
+                output.push('(');
+                output.push_str(&render_values(inner));
+                output.push(')');
+            }
+        }
+    }
+    output
 }
 
 fn render_ast_diagnostic(kind: &str, source: &str, span: AstSpan, message: &str) -> String {

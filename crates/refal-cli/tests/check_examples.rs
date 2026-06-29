@@ -64,3 +64,19 @@ fn reports_line_and_column_for_semantic_error() {
         "unexpected stderr:\n{stderr}"
     );
 }
+
+#[test]
+fn runs_program_and_prints_prout_output() {
+    let output = Command::new(refal_bin())
+        .args(["run", &workspace_path("examples/hello.ref")])
+        .output()
+        .expect("run refal binary");
+
+    assert!(
+        output.status.success(),
+        "run should pass\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(String::from_utf8_lossy(&output.stdout), "Hello, Refal\n");
+}

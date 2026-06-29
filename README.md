@@ -34,14 +34,16 @@ Early foundation phase.
 | Public documentation baseline | Complete |
 | Rust bootstrap workspace | Complete |
 | AST model | Initial |
-| Lexer | Initial |
+| Lexer | Initial: tokens, literals, comments, malformed-comment diagnostics |
 | Parser | Initial |
-| CLI syntax check | Initial |
+| CLI (`check`, `dump-ast`, `run`) | Initial |
 | Semantic checker | Initial |
-| Line/column diagnostics | Initial |
+| Diagnostics | Initial: source positions and readable runtime errors |
 | Runtime object model | Initial |
 | Pattern matcher | Initial |
-| Interpreter | Initial |
+| Interpreter | Initial: sentence dispatch, result calls, conditions |
+| Builtin runtime functions | Initial: captured `Prout` |
+| Parse/check/run integration | Initial |
 | Core Refal lowering | Planned |
 | Native code backend | Planned |
 | Self-hosting compiler path | Planned |
@@ -77,6 +79,7 @@ examples/        Small Refal programs
 cargo test
 cargo run -p refal -- check examples/identity.ref
 cargo run -p refal -- dump-ast examples/identity.ref
+cargo run -p refal -- run examples/hello.ref
 ```
 
 Example program:

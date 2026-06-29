@@ -21,7 +21,15 @@ pub enum MatchError {
 }
 
 pub fn match_pattern(pattern: &[Term], input: &[Value]) -> Result<Bindings, MatchError> {
-    match_from(pattern, input, Bindings::new())
+    match_pattern_with_bindings(pattern, input, Bindings::new())
+}
+
+pub fn match_pattern_with_bindings(
+    pattern: &[Term],
+    input: &[Value],
+    bindings: Bindings,
+) -> Result<Bindings, MatchError> {
+    match_from(pattern, input, bindings)
 }
 
 fn match_from(
