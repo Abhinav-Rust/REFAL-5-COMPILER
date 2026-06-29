@@ -7,3 +7,4 @@
 - Added AST, lexer, parser, CLI, examples, and public project documentation.
 - Added initial semantic checker for entry points, declarations, unresolved calls, and variable binding.
 - Added line/column diagnostic reporting in the CLI.
+- Added initial runtime object model and Refal pattern matcher.

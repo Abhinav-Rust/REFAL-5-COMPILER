@@ -38,6 +38,8 @@ Status: initial implementation started.
 - Built-in functions.
 - Executable interpreter mode.
 
+Status: runtime value model and initial matcher started.
+
 ## Milestone 5: Core Refal Lowering
 
 - Normalize high-level Refal into explicit Core Refal.

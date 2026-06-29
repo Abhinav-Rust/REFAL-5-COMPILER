@@ -39,7 +39,8 @@ Early foundation phase.
 | CLI syntax check | Initial |
 | Semantic checker | Initial |
 | Line/column diagnostics | Initial |
-| Pattern matcher | Planned |
+| Runtime object model | Initial |
+| Pattern matcher | Initial |
 | Interpreter | Planned |
 | Core Refal lowering | Planned |
 | Native code backend | Planned |
@@ -63,6 +64,8 @@ Current workspace:
 crates/
   refal-ast      Shared compiler data structures
   refal-syntax   Lexer and parser
+  refal-semantics Semantic validation
+  refal-runtime  Runtime values and pattern matcher
   refal-cli      Command-line interface
 docs/            Architecture, roadmap, clean-room policy
 examples/        Small Refal programs
