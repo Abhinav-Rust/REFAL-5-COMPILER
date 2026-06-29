@@ -169,6 +169,15 @@ impl<'a> Lexer<'a> {
 
         let mut ident = String::from(first);
         ident.push_str(&self.take_while(is_ident_continue));
+        if ident.chars().count() > 15 {
+            return Err(LexerError {
+                message: "identifier cannot exceed 15 characters".to_string(),
+                span: Span {
+                    start,
+                    end: self.cursor,
+                },
+            });
+        }
         Ok(TokenKind::Identifier(ident))
     }
 
@@ -430,5 +439,13 @@ mod tests {
                 name: "A".to_string()
             }
         );
+    }
+
+    #[test]
+    fn rejects_identifier_longer_than_fifteen_characters() {
+        let error = Lexer::new("ABCDEFGHIJKLMNOP").tokenize().unwrap_err();
+
+        assert_eq!(error.message, "identifier cannot exceed 15 characters");
+        assert_eq!(error.span, Span { start: 0, end: 16 });
     }
 }

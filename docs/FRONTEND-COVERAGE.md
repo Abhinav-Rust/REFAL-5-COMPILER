@@ -26,7 +26,7 @@ but their extensions must not silently enter the Classic Refal-5 frontend.
 | Inter-token whitespace | Complete | Exercised throughout parser tests |
 | `/* ... */` comments | Complete | Includes unterminated-comment diagnostic |
 | Line comments beginning with `*` | Complete | Lexer test covers a comment before a definition |
-| Identifier lexical rules | Partial | Current lexer is broader and does not enforce Classic limits/normalization |
+| Identifier lexical rules | Partial | 15-character limit and Classic name equivalence implemented; uppercase start remains |
 | Non-negative integer macrodigits | Complete | Number token and AST symbol |
 | Signed and unsigned real numbers | Complete | Lexer test covers decimal, exponent, and signed forms |
 | Quoted keyboard-character symbols | Partial | Escaping and quote behavior need explicit tests |

@@ -36,15 +36,14 @@ impl Checker {
         for item in &program.items {
             match item {
                 Item::Function(function) => {
-                    if self.functions.contains_key(&function.name)
-                        || self.externs.contains_key(&function.name)
-                    {
+                    let name = canonical_name(&function.name);
+                    if self.functions.contains_key(&name) || self.externs.contains_key(&name) {
                         self.push(
                             format!("duplicate function or declaration `{}`", function.name),
                             function.span,
                         );
                     } else {
-                        self.functions.insert(function.name.clone(), function.span);
+                        self.functions.insert(name, function.span);
                     }
 
                     if function.visibility == Visibility::Entry {
@@ -57,13 +56,16 @@ impl Checker {
                     }
 
                     for name in &declaration.names {
-                        if self.functions.contains_key(name) || self.externs.contains_key(name) {
+                        let canonical = canonical_name(name);
+                        if self.functions.contains_key(&canonical)
+                            || self.externs.contains_key(&canonical)
+                        {
                             self.push(
                                 format!("duplicate function or declaration `{name}`"),
                                 declaration.span,
                             );
                         } else {
-                            self.externs.insert(name.clone(), declaration.span);
+                            self.externs.insert(canonical, declaration.span);
                         }
                     }
                 }
@@ -99,7 +101,10 @@ impl Checker {
         for term in terms {
             match &term.kind {
                 TermKind::Call { name, args } => {
-                    if !self.functions.contains_key(name) && !self.externs.contains_key(name) {
+                    let canonical = canonical_name(name);
+                    if !self.functions.contains_key(&canonical)
+                        && !self.externs.contains_key(&canonical)
+                    {
                         self.push(format!("unresolved function call `{name}`"), term.span);
                     }
                     self.check_terms(args);
@@ -200,6 +205,18 @@ impl Checker {
     fn push(&mut self, message: String, span: Span) {
         self.diagnostics.push(Diagnostic { message, span });
     }
+}
+
+fn canonical_name(name: &str) -> String {
+    name.chars()
+        .map(|ch| {
+            if ch == '_' {
+                '-'
+            } else {
+                ch.to_ascii_uppercase()
+            }
+        })
+        .collect()
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -387,5 +404,10 @@ mod tests {
                 .iter()
                 .any(|diagnostic| diagnostic.message.contains("already bound"))
         );
+    }
+
+    #[test]
+    fn canonicalizes_classic_identifier_spelling() {
+        assert_eq!(canonical_name("Foo_Bar"), canonical_name("fOO-bAR"));
     }
 }
