@@ -41,7 +41,7 @@ Early foundation phase.
 | Line/column diagnostics | Initial |
 | Runtime object model | Initial |
 | Pattern matcher | Initial |
-| Interpreter | Planned |
+| Interpreter | Initial |
 | Core Refal lowering | Planned |
 | Native code backend | Planned |
 | Self-hosting compiler path | Planned |
@@ -65,7 +65,7 @@ crates/
   refal-ast      Shared compiler data structures
   refal-syntax   Lexer and parser
   refal-semantics Semantic validation
-  refal-runtime  Runtime values and pattern matcher
+  refal-runtime  Runtime values, pattern matcher, and interpreter
   refal-cli      Command-line interface
 docs/            Architecture, roadmap, clean-room policy
 examples/        Small Refal programs

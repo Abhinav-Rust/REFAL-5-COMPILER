@@ -8,3 +8,4 @@
 - Added initial semantic checker for entry points, declarations, unresolved calls, and variable binding.
 - Added line/column diagnostic reporting in the CLI.
 - Added initial runtime object model and Refal pattern matcher.
+- Added initial interpreter for simple sentence dispatch and result evaluation.
