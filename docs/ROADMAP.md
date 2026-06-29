@@ -4,6 +4,8 @@ The roadmap is intentionally practical. The compiler must become useful for real
 
 ## Milestone 1: Public-Grade Foundation
 
+Status: **Complete**.
+
 - Clean repository structure.
 - Professional README.
 - Clean-room policy.
@@ -12,6 +14,9 @@ The roadmap is intentionally practical. The compiler must become useful for real
 - CI-ready test command.
 
 ## Milestone 2: Classic Refal-5 Front End
+
+Status: **In progress**. Completion is governed by
+[`FRONTEND-COVERAGE.md`](FRONTEND-COVERAGE.md).
 
 - Complete token coverage.
 - Parser for functions, declarations, calls, brackets, variables, symbols, numbers, and literals.
@@ -28,7 +33,7 @@ The roadmap is intentionally practical. The compiler must become useful for real
 - Condition checks.
 - Clear diagnostics.
 
-Status: initial implementation started.
+Status: **Partial implementation; paused until Milestone 2 is complete**.
 
 ## Milestone 4: Runtime And Interpreter
 
@@ -38,7 +43,7 @@ Status: initial implementation started.
 - Built-in functions.
 - Executable interpreter mode.
 
-Status: runtime value model, initial matcher, and first interpreter slice started.
+Status: **Partial implementation; paused until Milestones 2 and 3 are complete**.
 
 ## Milestone 5: Core Refal Lowering
 

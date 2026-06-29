@@ -24,6 +24,9 @@ impl Parser {
     pub fn parse_program(&mut self) -> Result<Program, ParseError> {
         let mut items = Vec::new();
         while !self.at(TokenKind::Eof) {
+            if self.eat(TokenKind::Semicolon) {
+                continue;
+            }
             items.push(self.parse_item()?);
         }
         Ok(Program { items })
@@ -311,6 +314,21 @@ mod tests {
             Item::Declaration(declaration)
                 if declaration.kind == DeclarationKind::Extern
                     && declaration.names == ["Prout", "Card"]
+        ));
+    }
+
+    #[test]
+    fn parses_semicolon_between_function_definitions() {
+        let tokens = Lexer::new("First { =; }; Second { =; }")
+            .tokenize()
+            .unwrap();
+        let mut parser = Parser::new(tokens);
+        let program = parser.parse_program().unwrap();
+
+        assert_eq!(program.items.len(), 2);
+        assert!(matches!(
+            &program.items[1],
+            Item::Function(function) if function.name == "Second"
         ));
     }
 }

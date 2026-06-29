@@ -4,7 +4,7 @@ The first target is Classic Refal-5 semantics.
 
 The compiler should prefer correctness over breadth. A small feature with exact behavior is more valuable than a large feature that only works on demos.
 
-## Initial Scope
+## Milestone 2 Scope
 
 - Functions and `$ENTRY`.
 - Sentences with pattern, optional conditions, and result.
@@ -14,11 +14,18 @@ The compiler should prefer correctness over breadth. A small feature with exact 
 - Symbol, term, and expression variables: `s.`, `t.`, `e.`.
 - Repeated variable matching.
 - Character and number symbols.
+- Both Classic quoted character-string forms.
+- Classic block and line comments.
+- Integer and real numeric symbols.
+- Full and shorthand variable forms.
+- External declarations and top-level definition separators.
 
-## Planned Scope
+Detailed completion status is tracked in
+[`FRONTEND-COVERAGE.md`](FRONTEND-COVERAGE.md).
+
+## Later Milestones
 
 - Full built-in function set.
-- External declarations.
 - Include/module workflow.
 - Better string ergonomics while preserving Refal semantics.
 - Optimization-oriented Core Refal.

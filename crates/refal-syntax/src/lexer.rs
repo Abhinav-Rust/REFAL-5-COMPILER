@@ -91,7 +91,7 @@ impl<'a> Lexer<'a> {
             ':' => TokenKind::Colon,
             '=' => TokenKind::Equals,
             ';' => TokenKind::Semicolon,
-            '\'' => return self.lex_quoted_chars(start),
+            '\'' | '"' => return self.lex_quoted_chars(start, ch),
             '$' => self.lex_directive(start)?,
             c if is_ident_start(c) => self.lex_identifier_or_variable(c, start)?,
             c if c.is_ascii_digit() => self.lex_number(c),
@@ -161,10 +161,10 @@ impl<'a> Lexer<'a> {
         TokenKind::Number(number)
     }
 
-    fn lex_quoted_chars(&mut self, start: usize) -> Result<Token, LexerError> {
+    fn lex_quoted_chars(&mut self, start: usize, delimiter: char) -> Result<Token, LexerError> {
         let mut chars = Vec::new();
         while let Some(ch) = self.bump() {
-            if ch == '\'' {
+            if ch == delimiter {
                 if chars.is_empty() {
                     return Err(LexerError {
                         message: "empty character literal".to_string(),
@@ -210,6 +210,10 @@ impl<'a> Lexer<'a> {
     fn skip_ignored(&mut self) -> Result<(), LexerError> {
         loop {
             self.take_while(char::is_whitespace);
+            if self.peek() == Some('*') && self.at_line_start() {
+                self.take_while(|ch| ch != '\n');
+                continue;
+            }
             if self.source[self.cursor..].starts_with("/*") {
                 let start = self.cursor;
                 self.cursor += 2;
@@ -233,6 +237,12 @@ impl<'a> Lexer<'a> {
             }
             return Ok(());
         }
+    }
+
+    fn at_line_start(&self) -> bool {
+        self.source[..self.cursor]
+            .rsplit_once('\n')
+            .map_or(self.cursor == 0, |(_, prefix)| prefix.trim().is_empty())
     }
 
     fn take_while(&mut self, predicate: impl Fn(char) -> bool) -> String {
@@ -316,5 +326,24 @@ mod tests {
 
         assert_eq!(error.message, "unterminated block comment");
         assert_eq!(error.span, Span { start: 17, end: 30 });
+    }
+
+    #[test]
+    fn ignores_classic_line_comments() {
+        let tokens = Lexer::new("* module entry\n$ENTRY Go { =; }")
+            .tokenize()
+            .unwrap();
+
+        assert_eq!(tokens[0].kind, TokenKind::Entry);
+        assert_eq!(tokens[1].kind, TokenKind::Identifier("Go".to_string()));
+    }
+
+    #[test]
+    fn tokenizes_double_quoted_text_as_character_sequence() {
+        let tokens = Lexer::new("\"OK\"").tokenize().unwrap();
+
+        assert_eq!(tokens[0].kind, TokenKind::Char('O'));
+        assert_eq!(tokens[1].kind, TokenKind::Char('K'));
+        assert_eq!(tokens[2].kind, TokenKind::Eof);
     }
 }

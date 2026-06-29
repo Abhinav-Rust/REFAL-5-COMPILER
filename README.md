@@ -26,7 +26,8 @@ The project starts with a robust bootstrap front end and grows toward a self-hos
 
 ## Project Status
 
-Early foundation phase.
+Milestone 1 is complete. Work is focused on closing Milestone 2 against the
+[Classic Refal-5 frontend coverage matrix](docs/FRONTEND-COVERAGE.md).
 
 | Component | Status |
 | --- | --- |
@@ -34,8 +35,8 @@ Early foundation phase.
 | Public documentation baseline | Complete |
 | Rust bootstrap workspace | Complete |
 | AST model | Initial |
-| Lexer | Initial: tokens, literals, comments, malformed-comment diagnostics |
-| Parser | Initial |
+| Lexer | Milestone 2: both quote forms and both Classic comment forms |
+| Parser | Milestone 2: core grammar and top-level separators |
 | CLI (`check`, `dump-ast`, `run`) | Initial |
 | Semantic checker | Initial |
 | Diagnostics | Initial: source positions and readable runtime errors |
