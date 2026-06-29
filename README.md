@@ -35,7 +35,7 @@ Milestone 1 is complete. Work is focused on closing Milestone 2 against the
 | Public documentation baseline | Complete |
 | Rust bootstrap workspace | Complete |
 | AST model | Initial |
-| Lexer | Milestone 2: both quote forms and both Classic comment forms |
+| Lexer | Milestone 2: Classic quotes, comments, real numbers, and variables |
 | Parser | Milestone 2: core grammar and top-level separators |
 | CLI (`check`, `dump-ast`, `run`) | Initial |
 | Semantic checker | Initial |

@@ -93,8 +93,11 @@ impl<'a> Lexer<'a> {
             ';' => TokenKind::Semicolon,
             '\'' | '"' => return self.lex_quoted_chars(start, ch),
             '$' => self.lex_directive(start)?,
+            c @ ('+' | '-') if self.peek().is_some_and(|next| next.is_ascii_digit()) => {
+                self.lex_number(c, start)?
+            }
             c if is_ident_start(c) => self.lex_identifier_or_variable(c, start)?,
-            c if c.is_ascii_digit() => self.lex_number(c),
+            c if c.is_ascii_digit() => self.lex_number(c, start)?,
             other => {
                 return Err(LexerError {
                     message: format!("unexpected character `{other}`"),
@@ -150,15 +153,60 @@ impl<'a> Lexer<'a> {
             return Ok(TokenKind::Variable { kind: first, name });
         }
 
+        if matches!(first, 's' | 't' | 'e') {
+            let mut remaining = self.source[self.cursor..].chars();
+            if let Some(index) = remaining.next()
+                && (index.is_ascii_uppercase() || index.is_ascii_digit())
+                && remaining.next().is_none_or(|ch| !is_ident_continue(ch))
+            {
+                self.bump();
+                return Ok(TokenKind::Variable {
+                    kind: first,
+                    name: index.to_string(),
+                });
+            }
+        }
+
         let mut ident = String::from(first);
         ident.push_str(&self.take_while(is_ident_continue));
         Ok(TokenKind::Identifier(ident))
     }
 
-    fn lex_number(&mut self, first: char) -> TokenKind {
+    fn lex_number(&mut self, first: char, start: usize) -> Result<TokenKind, LexerError> {
         let mut number = String::from(first);
         number.push_str(&self.take_while(|c| c.is_ascii_digit()));
-        TokenKind::Number(number)
+
+        if self.peek() == Some('.') {
+            number.push(self.bump().expect("peeked decimal point"));
+            let fraction = self.take_while(|c| c.is_ascii_digit());
+            if fraction.is_empty() {
+                return Err(LexerError {
+                    message: "real number requires digits after decimal point".to_string(),
+                    span: Span {
+                        start,
+                        end: self.cursor,
+                    },
+                });
+            }
+            number.push_str(&fraction);
+        }
+
+        if self.peek() == Some('E') {
+            number.push(self.bump().expect("peeked exponent marker"));
+            let exponent = self.take_while(|c| c.is_ascii_digit());
+            if exponent.is_empty() {
+                return Err(LexerError {
+                    message: "real number requires digits after exponent marker".to_string(),
+                    span: Span {
+                        start,
+                        end: self.cursor,
+                    },
+                });
+            }
+            number.push_str(&exponent);
+        }
+
+        Ok(TokenKind::Number(number))
     }
 
     fn lex_quoted_chars(&mut self, start: usize, delimiter: char) -> Result<Token, LexerError> {
@@ -345,5 +393,42 @@ mod tests {
         assert_eq!(tokens[0].kind, TokenKind::Char('O'));
         assert_eq!(tokens[1].kind, TokenKind::Char('K'));
         assert_eq!(tokens[2].kind, TokenKind::Eof);
+    }
+
+    #[test]
+    fn tokenizes_classic_real_numbers() {
+        let tokens = Lexer::new("12.5 -3.25 +4E2 6.0E3").tokenize().unwrap();
+
+        assert_eq!(tokens[0].kind, TokenKind::Number("12.5".to_string()));
+        assert_eq!(tokens[1].kind, TokenKind::Number("-3.25".to_string()));
+        assert_eq!(tokens[2].kind, TokenKind::Number("+4E2".to_string()));
+        assert_eq!(tokens[3].kind, TokenKind::Number("6.0E3".to_string()));
+    }
+
+    #[test]
+    fn tokenizes_one_character_variable_shorthand() {
+        let tokens = Lexer::new("sX t1 eA").tokenize().unwrap();
+
+        assert_eq!(
+            tokens[0].kind,
+            TokenKind::Variable {
+                kind: 's',
+                name: "X".to_string()
+            }
+        );
+        assert_eq!(
+            tokens[1].kind,
+            TokenKind::Variable {
+                kind: 't',
+                name: "1".to_string()
+            }
+        );
+        assert_eq!(
+            tokens[2].kind,
+            TokenKind::Variable {
+                kind: 'e',
+                name: "A".to_string()
+            }
+        );
     }
 }

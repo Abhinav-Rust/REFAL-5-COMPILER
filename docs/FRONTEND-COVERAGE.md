@@ -28,10 +28,10 @@ but their extensions must not silently enter the Classic Refal-5 frontend.
 | Line comments beginning with `*` | Complete | Lexer test covers a comment before a definition |
 | Identifier lexical rules | Partial | Current lexer is broader and does not enforce Classic limits/normalization |
 | Non-negative integer macrodigits | Complete | Number token and AST symbol |
-| Signed and unsigned real numbers | Missing | Only decimal digit strings are recognized |
+| Signed and unsigned real numbers | Complete | Lexer test covers decimal, exponent, and signed forms |
 | Quoted keyboard-character symbols | Partial | Escaping and quote behavior need explicit tests |
 | `s.`, `t.`, `e.` variables | Complete | Lexer/parser/runtime tests |
-| One-character variable shorthand | Missing | Forms such as `sX` and `e1` are not recognized |
+| One-character variable shorthand | Complete | Lexer test covers letter and digit indices |
 | Invalid-token diagnostics with spans | Partial | Representative tests exist; golden coverage is incomplete |
 
 ## Grammar Coverage
