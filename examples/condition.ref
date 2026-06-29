@@ -1,0 +1,4 @@
+$ENTRY ContainsX {
+  e.Text, e.Text : e.Left 'x' e.Right = 'Y';
+  e.Text = 'N';
+}
