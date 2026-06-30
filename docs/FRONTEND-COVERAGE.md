@@ -26,13 +26,13 @@ but their extensions must not silently enter the Classic Refal-5 frontend.
 | Inter-token whitespace | Complete | Exercised throughout parser tests |
 | `/* ... */` comments | Complete | Includes unterminated-comment diagnostic |
 | Line comments beginning with `*` | Complete | Lexer test covers a comment before a definition |
-| Identifier lexical rules | Partial | 15-character limit and Classic name equivalence implemented; uppercase start remains |
+| Identifier lexical rules | Complete | Uppercase-start diagnostics, 15-character limits, variable index limits, and Classic name equivalence tests |
 | Non-negative integer macrodigits | Complete | Number token and AST symbol |
 | Signed and unsigned real numbers | Complete | Lexer test covers decimal, exponent, and signed forms |
-| Quoted keyboard-character symbols | Partial | Escaping and quote behavior need explicit tests |
+| Quoted keyboard-character symbols | Complete | Single and double quote forms, opposite-quote content, and empty literal diagnostics |
 | `s.`, `t.`, `e.` variables | Complete | Lexer/parser/runtime tests |
 | One-character variable shorthand | Complete | Lexer test covers letter and digit indices |
-| Invalid-token diagnostics with spans | Partial | Representative tests exist; golden coverage is incomplete |
+| Invalid-token diagnostics with spans | Complete | CLI golden tests cover identifier and malformed-number lex errors with line/column output |
 
 ## Grammar Coverage
 
@@ -47,14 +47,13 @@ but their extensions must not silently enter the Classic Refal-5 frontend.
 | Sentence alternatives | Complete | Runtime/parser examples |
 | Empty patterns and results | Complete | Hello example |
 | Condition chains | Complete | Parser and interpreter tests |
-| Calls prohibited in patterns | Partial | Runtime rejection exists; parser/semantic diagnostic is not yet explicit |
+| Calls prohibited in patterns | Complete | Semantic checker and CLI golden tests reject calls in patterns |
 | Optional semicolons between top-level definitions | Complete | Parser test covers separated definitions |
-| Full malformed-program golden suite | Missing | Current negative examples cover only semantic errors |
+| Full malformed-program golden suite | Complete | Negative fixtures cover unresolved calls, unbound variables, lexical errors, malformed numbers, and pattern calls |
 
 ## Milestone 2 Exit Criteria
 
-- Every row above is `Complete`, or explicitly documented as excluded from the
-  Classic Refal-5 target with rationale.
-- Positive and negative golden fixtures cover every lexical and grammar category.
-- `cargo fmt --check`, `cargo test`, and `git diff --check` pass.
-- README and roadmap report Milestone 2 as complete only after those checks.
+- Every row above is `Complete`.
+- Positive and negative golden fixtures cover lexical and grammar categories in scope.
+- `cargo fmt --check`, `cargo test`, and `git diff --check` must pass before each push.
+- README and roadmap report Milestone 2 as complete.

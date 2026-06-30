@@ -150,6 +150,15 @@ impl<'a> Lexer<'a> {
                     },
                 });
             }
+            if name.chars().count() > 15 {
+                return Err(LexerError {
+                    message: "variable identifier index cannot exceed 15 characters".to_string(),
+                    span: Span {
+                        start,
+                        end: self.cursor,
+                    },
+                });
+            }
             return Ok(TokenKind::Variable { kind: first, name });
         }
 
@@ -165,6 +174,18 @@ impl<'a> Lexer<'a> {
                     name: index.to_string(),
                 });
             }
+        }
+
+        if !first.is_ascii_uppercase() {
+            self.take_while(is_ident_continue);
+            return Err(LexerError {
+                message: "Classic Refal-5 identifiers must start with an uppercase letter"
+                    .to_string(),
+                span: Span {
+                    start,
+                    end: self.cursor,
+                },
+            });
         }
 
         let mut ident = String::from(first);
@@ -447,5 +468,75 @@ mod tests {
 
         assert_eq!(error.message, "identifier cannot exceed 15 characters");
         assert_eq!(error.span, Span { start: 0, end: 16 });
+    }
+
+    #[test]
+    fn rejects_identifier_starting_with_lowercase_letter() {
+        let error = Lexer::new("lowercase").tokenize().unwrap_err();
+
+        assert_eq!(
+            error.message,
+            "Classic Refal-5 identifiers must start with an uppercase letter"
+        );
+        assert_eq!(error.span, Span { start: 0, end: 9 });
+    }
+
+    #[test]
+    fn rejects_identifier_not_starting_with_uppercase_letter() {
+        for source in ["_Bad", "-Bad"] {
+            let error = Lexer::new(source).tokenize().unwrap_err();
+            assert_eq!(
+                error.message,
+                "Classic Refal-5 identifiers must start with an uppercase letter"
+            );
+            assert_eq!(
+                error.span,
+                Span {
+                    start: 0,
+                    end: source.len()
+                }
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_variable_identifier_index_longer_than_fifteen_characters() {
+        let error = Lexer::new("e.ABCDEFGHIJKLMNOP").tokenize().unwrap_err();
+
+        assert_eq!(
+            error.message,
+            "variable identifier index cannot exceed 15 characters"
+        );
+        assert_eq!(error.span, Span { start: 0, end: 18 });
+    }
+
+    #[test]
+    fn rejects_malformed_real_numbers() {
+        for (source, message, end) in [
+            ("1.", "real number requires digits after decimal point", 2),
+            ("1E", "real number requires digits after exponent marker", 2),
+        ] {
+            let error = Lexer::new(source).tokenize().unwrap_err();
+            assert_eq!(error.message, message);
+            assert_eq!(error.span, Span { start: 0, end });
+        }
+    }
+
+    #[test]
+    fn quote_forms_can_contain_the_opposite_quote() {
+        let single = Lexer::new("'\"'").tokenize().unwrap();
+        let double = Lexer::new("\"'\"").tokenize().unwrap();
+
+        assert_eq!(single[0].kind, TokenKind::Char('"'));
+        assert_eq!(double[0].kind, TokenKind::Char('\''));
+    }
+
+    #[test]
+    fn rejects_empty_quoted_character_sequence() {
+        for source in ["''", "\"\""] {
+            let error = Lexer::new(source).tokenize().unwrap_err();
+            assert_eq!(error.message, "empty character literal");
+            assert_eq!(error.span, Span { start: 0, end: 2 });
+        }
     }
 }

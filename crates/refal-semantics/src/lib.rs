@@ -87,17 +87,17 @@ impl Checker {
             };
 
             for sentence in &function.sentences {
-                self.check_terms(&sentence.pattern);
+                self.check_pattern_terms(&sentence.pattern);
                 for condition in &sentence.conditions {
-                    self.check_terms(&condition.result);
-                    self.check_terms(&condition.pattern);
+                    self.check_expression_terms(&condition.result);
+                    self.check_pattern_terms(&condition.pattern);
                 }
-                self.check_terms(&sentence.result);
+                self.check_expression_terms(&sentence.result);
             }
         }
     }
 
-    fn check_terms(&mut self, terms: &[Term]) {
+    fn check_expression_terms(&mut self, terms: &[Term]) {
         for term in terms {
             match &term.kind {
                 TermKind::Call { name, args } => {
@@ -107,9 +107,24 @@ impl Checker {
                     {
                         self.push(format!("unresolved function call `{name}`"), term.span);
                     }
-                    self.check_terms(args);
+                    self.check_expression_terms(args);
                 }
-                TermKind::Bracket(inner) => self.check_terms(inner),
+                TermKind::Bracket(inner) => self.check_expression_terms(inner),
+                TermKind::Symbol(_) | TermKind::Variable(_) => {}
+            }
+        }
+    }
+
+    fn check_pattern_terms(&mut self, terms: &[Term]) {
+        for term in terms {
+            match &term.kind {
+                TermKind::Call { .. } => {
+                    self.push(
+                        "function calls are not allowed in patterns".to_string(),
+                        term.span,
+                    );
+                }
+                TermKind::Bracket(inner) => self.check_pattern_terms(inner),
                 TermKind::Symbol(_) | TermKind::Variable(_) => {}
             }
         }
@@ -404,6 +419,51 @@ mod tests {
                 .iter()
                 .any(|diagnostic| diagnostic.message.contains("already bound"))
         );
+    }
+
+    #[test]
+    fn rejects_function_calls_in_patterns() {
+        let call_span = Span { start: 14, end: 22 };
+        let program = Program {
+            items: vec![
+                Item::Function(Function {
+                    name: "Go".to_string(),
+                    visibility: Visibility::Entry,
+                    sentences: vec![Sentence {
+                        pattern: vec![Term {
+                            kind: TermKind::Call {
+                                name: "Helper".to_string(),
+                                args: vec![],
+                            },
+                            span: call_span,
+                        }],
+                        conditions: vec![],
+                        result: vec![],
+                        span: empty_span(),
+                    }],
+                    span: empty_span(),
+                }),
+                Item::Function(Function {
+                    name: "Helper".to_string(),
+                    visibility: Visibility::Local,
+                    sentences: vec![Sentence {
+                        pattern: vec![],
+                        conditions: vec![],
+                        result: vec![],
+                        span: empty_span(),
+                    }],
+                    span: empty_span(),
+                }),
+            ],
+        };
+
+        let diagnostics = check_program(&program).unwrap_err();
+
+        assert!(diagnostics.iter().any(|diagnostic| diagnostic
+            == &Diagnostic {
+                message: "function calls are not allowed in patterns".to_string(),
+                span: call_span
+            }));
     }
 
     #[test]

@@ -79,7 +79,7 @@ The project starts with a robust bootstrap front end written in Rust and grows t
 
 ## Project Status
 
-**Milestone 1 is complete.** Work is currently focused on closing Milestone 2 against the [Classic Refal-5 frontend coverage matrix](docs/FRONTEND-COVERAGE.md). See the full [Roadmap](docs/ROADMAP.md) for planned milestones.
+**Milestones 1 and 2 are complete.** Work is moving into Milestone 3 semantic checking, with the frontend completion contract tracked in the [Classic Refal-5 frontend coverage matrix](docs/FRONTEND-COVERAGE.md). See the full [Roadmap](docs/ROADMAP.md) for planned milestones.
 
 | Component | Status |
 |---|---|
@@ -89,13 +89,13 @@ The project starts with a robust bootstrap front end written in Rust and grows t
 | CI pipeline | ✅ Complete |
 | MIT license | ✅ Complete |
 | AST model (`refal-ast`) | 🔶 Initial |
-| Lexer (`refal-syntax`) | 🔷 Milestone 2 — classic quotes, comments, real numbers, variables |
-| Parser (`refal-syntax`) | 🔷 Milestone 2 — core grammar and top-level separators |
+| Lexer (`refal-syntax`) | ✅ Milestone 2 complete — classic quotes, comments, real numbers, identifiers, variables |
+| Parser (`refal-syntax`) | ✅ Milestone 2 complete — functions, declarations, calls, conditions, brackets, separators |
 | CLI (`check`, `dump-ast`, `run`) | 🔶 Initial |
-| Semantic checker (`refal-semantics`) | 🔶 Initial — entry points, declarations, unbound variables |
-| Diagnostics with source positions | 🔶 Initial |
-| Golden test suite | 🔷 Planned for Milestone 2 |
-| Core Refal lowering | 🔷 Planned for Milestone 3 |
+| Semantic checker (`refal-semantics`) | 🔶 Milestone 3 in progress — entry points, declarations, bindings, frontend legality |
+| Diagnostics with source positions | 🔶 Initial — frontend golden cases covered |
+| Golden test suite | ✅ Milestone 2 frontend coverage complete |
+| Core Refal lowering | 🔷 Planned |
 | Native backend / code generation | 🔷 Planned for later milestones |
 
 ---
@@ -149,13 +149,13 @@ The CLI is in early development. The following commands are available:
 
 ```sh
 # Check a .ref file for syntax and semantic errors
-cargo run -p refal-cli -- check examples/hello.ref
+cargo run -p refal -- check examples/hello.ref
 
 # Dump the parsed AST in a human-readable format
-cargo run -p refal-cli -- dump-ast examples/hello.ref
+cargo run -p refal -- dump-ast examples/hello.ref
 
 # Run a .ref program (interpreter — initial stage)
-cargo run -p refal-cli -- run examples/hello.ref
+cargo run -p refal -- run examples/hello.ref
 ```
 
 The CLI and interpreter are at an initial stage. Not all Refal-5 programs will execute correctly yet. See the [frontend coverage matrix](docs/FRONTEND-COVERAGE.md) for what is currently supported.

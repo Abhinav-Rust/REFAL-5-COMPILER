@@ -15,6 +15,7 @@ fn accepts_positive_examples() {
         "examples/hello.ref",
         "examples/condition.ref",
         "examples/extern.ref",
+        "examples/classic-syntax.ref",
     ] {
         let output = Command::new(refal_bin())
             .args(["check", &workspace_path(path)])
@@ -35,6 +36,9 @@ fn rejects_negative_examples() {
     for path in [
         "examples/bad-unresolved-call.ref",
         "examples/bad-unbound-variable.ref",
+        "examples/bad-lowercase-identifier.ref",
+        "examples/bad-malformed-real.ref",
+        "examples/bad-call-in-pattern.ref",
     ] {
         let output = Command::new(refal_bin())
             .args(["check", &workspace_path(path)])
@@ -48,6 +52,56 @@ fn rejects_negative_examples() {
             String::from_utf8_lossy(&output.stderr)
         );
     }
+}
+
+#[test]
+fn reports_line_and_column_for_lex_error() {
+    let output = Command::new(refal_bin())
+        .args([
+            "check",
+            &workspace_path("examples/bad-lowercase-identifier.ref"),
+        ])
+        .output()
+        .expect("run refal binary");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains(
+            "lex error at 1:1: Classic Refal-5 identifiers must start with an uppercase letter"
+        ),
+        "unexpected stderr:\n{stderr}"
+    );
+}
+
+#[test]
+fn reports_line_and_column_for_malformed_real_number() {
+    let output = Command::new(refal_bin())
+        .args(["check", &workspace_path("examples/bad-malformed-real.ref")])
+        .output()
+        .expect("run refal binary");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("lex error at 2:5: real number requires digits after decimal point"),
+        "unexpected stderr:\n{stderr}"
+    );
+}
+
+#[test]
+fn reports_line_and_column_for_pattern_call_error() {
+    let output = Command::new(refal_bin())
+        .args(["check", &workspace_path("examples/bad-call-in-pattern.ref")])
+        .output()
+        .expect("run refal binary");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("semantic error at 2:3: function calls are not allowed in patterns"),
+        "unexpected stderr:\n{stderr}"
+    );
 }
 
 #[test]

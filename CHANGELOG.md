@@ -9,3 +9,5 @@
 - Added line/column diagnostic reporting in the CLI.
 - Added initial runtime object model and Refal pattern matcher.
 - Added initial interpreter for simple sentence dispatch and result evaluation.
+- Completed the Milestone 2 Classic Refal-5 frontend coverage contract with
+  identifier, quoted literal, malformed number, pattern-call, and CLI golden tests.

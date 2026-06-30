@@ -15,7 +15,7 @@ Status: **Complete**.
 
 ## Milestone 2: Classic Refal-5 Front End
 
-Status: **In progress**. Completion is governed by
+Status: **Complete**. Completion is governed by
 [`FRONTEND-COVERAGE.md`](FRONTEND-COVERAGE.md).
 
 - Complete token coverage.
@@ -33,7 +33,7 @@ Status: **In progress**. Completion is governed by
 - Condition checks.
 - Clear diagnostics.
 
-Status: **Partial implementation; paused until Milestone 2 is complete**.
+Status: **In progress**. This is the next active milestone.
 
 ## Milestone 4: Runtime And Interpreter
 
