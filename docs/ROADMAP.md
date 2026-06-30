@@ -33,7 +33,22 @@ Status: **Complete**. Completion is governed by
 - Condition checks.
 - Clear diagnostics.
 
-Status: **In progress**. This is the next active milestone.
+Status: **In progress**.
+
+Completed so far:
+
+- Missing-entry and duplicate-entry validation.
+- Duplicate function/declaration checks with Classic identifier equivalence.
+- Unresolved-call checks.
+- Result-variable binding checks.
+- Condition-introduced binding checks.
+- Pattern call rejection.
+
+Remaining before completion:
+
+- Broader semantic golden fixtures.
+- Runtime/semantic consistency checks for more identifier and declaration edge cases.
+- Clearer diagnostic coverage for every semantic rule.
 
 ## Milestone 4: Runtime And Interpreter
 

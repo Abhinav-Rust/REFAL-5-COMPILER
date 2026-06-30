@@ -27,7 +27,7 @@ pub fn check_program(program: &Program) -> Result<(), Vec<Diagnostic>> {
 struct Checker {
     functions: HashMap<String, Span>,
     externs: HashMap<String, Span>,
-    entries: HashSet<String>,
+    entry: Option<Span>,
     diagnostics: Vec<Diagnostic>,
 }
 
@@ -47,7 +47,14 @@ impl Checker {
                     }
 
                     if function.visibility == Visibility::Entry {
-                        self.entries.insert(function.name.clone());
+                        if self.entry.is_some() {
+                            self.push(
+                                "program has more than one $ENTRY function".to_string(),
+                                function.span,
+                            );
+                        } else {
+                            self.entry = Some(function.span);
+                        }
                     }
                 }
                 Item::Declaration(declaration) => {
@@ -72,7 +79,7 @@ impl Checker {
             }
         }
 
-        if self.entries.is_empty() {
+        if self.entry.is_none() {
             self.push(
                 "program has no $ENTRY function".to_string(),
                 Span { start: 0, end: 0 },
@@ -299,6 +306,34 @@ mod tests {
                 .iter()
                 .any(|diagnostic| diagnostic.message.contains("no $ENTRY"))
         );
+    }
+
+    #[test]
+    fn rejects_multiple_entry_functions() {
+        let program = Program {
+            items: vec![
+                Item::Function(Function {
+                    name: "Go".to_string(),
+                    visibility: Visibility::Entry,
+                    sentences: vec![],
+                    span: Span { start: 0, end: 10 },
+                }),
+                Item::Function(Function {
+                    name: "Main".to_string(),
+                    visibility: Visibility::Entry,
+                    sentences: vec![],
+                    span: Span { start: 11, end: 21 },
+                }),
+            ],
+        };
+
+        let diagnostics = check_program(&program).unwrap_err();
+
+        assert!(diagnostics.iter().any(|diagnostic| diagnostic
+            == &Diagnostic {
+                message: "program has more than one $ENTRY function".to_string(),
+                span: Span { start: 11, end: 21 }
+            }));
     }
 
     #[test]

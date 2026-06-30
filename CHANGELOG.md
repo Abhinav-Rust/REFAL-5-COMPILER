@@ -11,3 +11,5 @@
 - Added initial interpreter for simple sentence dispatch and result evaluation.
 - Completed the Milestone 2 Classic Refal-5 frontend coverage contract with
   identifier, quoted literal, malformed number, pattern-call, and CLI golden tests.
+- Advanced Milestone 3 semantic checking with duplicate `$ENTRY` diagnostics and
+  aligned runtime dispatch with Classic identifier equivalence.

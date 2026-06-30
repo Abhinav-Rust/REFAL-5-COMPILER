@@ -39,6 +39,7 @@ fn rejects_negative_examples() {
         "examples/bad-lowercase-identifier.ref",
         "examples/bad-malformed-real.ref",
         "examples/bad-call-in-pattern.ref",
+        "examples/bad-multiple-entry.ref",
     ] {
         let output = Command::new(refal_bin())
             .args(["check", &workspace_path(path)])
@@ -100,6 +101,21 @@ fn reports_line_and_column_for_pattern_call_error() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
         stderr.contains("semantic error at 2:3: function calls are not allowed in patterns"),
+        "unexpected stderr:\n{stderr}"
+    );
+}
+
+#[test]
+fn reports_line_and_column_for_multiple_entry_error() {
+    let output = Command::new(refal_bin())
+        .args(["check", &workspace_path("examples/bad-multiple-entry.ref")])
+        .output()
+        .expect("run refal binary");
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("semantic error at 5:1: program has more than one $ENTRY function"),
         "unexpected stderr:\n{stderr}"
     );
 }

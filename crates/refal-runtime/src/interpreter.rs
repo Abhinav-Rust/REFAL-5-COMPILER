@@ -40,7 +40,7 @@ impl fmt::Display for EvalError {
 impl std::error::Error for EvalError {}
 
 pub struct Evaluator<'a> {
-    functions: HashMap<&'a str, &'a Function>,
+    functions: HashMap<String, &'a Function>,
     output: RefCell<Vec<Vec<Value>>>,
 }
 
@@ -50,7 +50,7 @@ impl<'a> Evaluator<'a> {
             .items
             .iter()
             .filter_map(|item| match item {
-                Item::Function(function) => Some((function.name.as_str(), function)),
+                Item::Function(function) => Some((canonical_name(&function.name), function)),
                 Item::Declaration(_) => None,
             })
             .collect();
@@ -82,7 +82,8 @@ impl<'a> Evaluator<'a> {
             return result;
         }
 
-        let Some(function) = self.functions.get(name) else {
+        let canonical = canonical_name(name);
+        let Some(function) = self.functions.get(&canonical) else {
             return Err(EvalError::FunctionNotFound(name.to_string()));
         };
 
@@ -156,6 +157,18 @@ fn eval_symbol(symbol: &Symbol) -> Value {
         Symbol::Identifier(name) => Value::Identifier(name.clone()),
         Symbol::Number(number) => Value::Number(number.clone()),
     }
+}
+
+fn canonical_name(name: &str) -> String {
+    name.chars()
+        .map(|ch| {
+            if ch == '_' {
+                '-'
+            } else {
+                ch.to_ascii_uppercase()
+            }
+        })
+        .collect()
 }
 
 fn resolve_variable(variable: &Variable, bindings: &Bindings) -> Result<Vec<Value>, EvalError> {
@@ -301,6 +314,32 @@ mod tests {
         assert_eq!(
             evaluator.evaluate_entry(&[Value::Char('A')]).unwrap(),
             vec![Value::Char('('), Value::Char('A'), Value::Char(')')]
+        );
+    }
+
+    #[test]
+    fn dispatches_functions_using_classic_identifier_equivalence() {
+        let entry = Sentence {
+            pattern: vec![],
+            conditions: vec![],
+            result: vec![call("wrap_value", vec![])],
+            span: span(),
+        };
+        let helper = Sentence {
+            pattern: vec![],
+            conditions: vec![],
+            result: vec![term(TermKind::Symbol(Symbol::Char('O')))],
+            span: span(),
+        };
+        let program = program(vec![
+            function("Go", Visibility::Entry, vec![entry]),
+            function("Wrap-Value", Visibility::Local, vec![helper]),
+        ]);
+        let evaluator = Evaluator::new(&program);
+
+        assert_eq!(
+            evaluator.evaluate_entry(&[]).unwrap(),
+            vec![Value::Char('O')]
         );
     }
 
