@@ -1,6 +1,6 @@
-$EXTERN Prout, Chr;
+$EXTERN Prout, Chr, Ord, Add, Compare;
 
-* Refal-authored lexer + parser for Classic Refal-5.
+* Refal-authored lexer + parser + checker for Classic Refal-5.
 *
 * The lexer is the same tokeniser as examples/lexer.ref, but it emits token
 * TERMS rather than display text:
@@ -24,7 +24,7 @@ $EXTERN Prout, Chr;
 * structural brackets. Not yet: blocks, as sentence endings or in conditions.
 
 $ENTRY Go {
-  (e.Source) = <Prout <Parse <Lex (<Chr 10>) <StripCR (<Chr 13>) e.Source>>>>;
+  (e.Source) = <Prout <Check <Parse <Lex (<Chr 10>) <StripCR (<Chr 13>) e.Source>>>>>;
 }
 
 * ---------------------------------------------------------------- lexer
@@ -259,4 +259,121 @@ TermsCall {
 
 TermsCall2 {
   (e.Acc) (e.N) (e.Args) RA e.R = <Terms (e.Acc (CALL (ID e.N) e.Args)) e.R>;
+}
+
+* -------------------------------------------------------------- checker
+*
+* Prints OK when a program is well formed and a semicolon-separated diagnostic
+* list otherwise. Checks today: the exported Go entry point, duplicate function
+* names, and unbound variables in results.
+
+Check {
+  (PROG e.Items) = <Report <HasGo e.Items> <Dups e.Items> <Vars e.Items>>;
+}
+
+Report {
+  = "OK";
+  e.Msg = "ERRORS: " e.Msg;
+}
+
+* Refal-5 entry rule (reference A): execution starts from Go, and Go must be
+* exported with $ENTRY.
+* The parser stores a name as its characters, not as an identifier symbol, so
+* the name is written here as the character literal 'Go'.
+HasGo {
+  (FUN (Ident 'Go') (VIS ENTRY) e.Sents) e.Rest = ;
+  (FUN (Ident 'Go') (VIS LOCAL) e.Sents) e.Rest = "Go is defined but not exported with $ENTRY; ";
+  t.Item e.Rest = <HasGo e.Rest>;
+  = "the program must define an exported Go entry point; ";
+}
+
+Dups {
+  = ;
+  (FUN (Ident e.N) (e.V) e.Sents) e.Rest = <DupName (e.N) e.Rest> <Dups e.Rest>;
+  t.Item e.Rest = <Dups e.Rest>;
+}
+
+* Names are compared under Classic Refal-5 name equivalence (reference 1.2.1):
+* case folds and '-' is equivalent to '_'. FOO-BAR and FOO_BAR are one function.
+DupName {
+  (e.N) = ;
+  (e.N) (FUN (Ident e.M) (e.V) e.Sents) e.Rest,
+    <EqName (<Canon e.N>) (<Canon e.M>)> : '1' = "duplicate function " e.M "; ";
+  (e.N) t.Item e.Rest = <DupName (e.N) e.Rest>;
+}
+
+EqName {
+  (e.A) (e.A) = '1';
+  (e.A) (e.B) = ;
+}
+
+Canon {
+  = ;
+  '-' e.R = '_' <Canon e.R>;
+  s.C e.R = <CanonChar s.C> <Canon e.R>;
+}
+
+* Folds A-Z to a-z by arithmetic rather than 26 sentences per case. Compare
+* returns -, 0 or +, so the two tests are "below A" and "within A-Z".
+CanonChar {
+  s.C, <Ord s.C> : s.N, <Compare s.N 65> : '-' = s.C;
+  s.C, <Ord s.C> : s.N, <Compare s.N 91> : '-' = <Chr <Add s.N 32>>;
+  s.C = s.C;
+}
+
+Vars {
+  = ;
+  (FUN (Ident e.N) (e.V) e.Sents) e.Rest = <VarsSents e.Sents> <Vars e.Rest>;
+  t.Item e.Rest = <Vars e.Rest>;
+}
+
+VarsSents {
+  = ;
+  (SENT (e.Pat) (e.Conds) (e.Res)) e.Rest = <VarsSent (e.Pat) (e.Conds) (e.Res)> <VarsSents e.Rest>;
+  t.Item e.Rest = <VarsSents e.Rest>;
+}
+
+* A result variable must be bound by the sentence pattern or by the pattern of
+* one of its conditions.
+VarsSent {
+  (e.Pat) (e.Conds) (e.Res) = <Unbound (e.Res) (<VarsOf e.Pat> <CondVars e.Conds>)>;
+}
+
+CondVars {
+  = ;
+  (COND (e.Expr) (e.CPat)) e.Rest = <VarsOf e.CPat> <CondVars e.Rest>;
+}
+
+VarsOf {
+  = ;
+  (VAR s.K e.I) e.Rest = (V s.K e.I) <VarsOf e.Rest>;
+  (BR e.Inner) e.Rest = <VarsOf e.Inner> <VarsOf e.Rest>;
+  (CALL (ID e.N) e.Args) e.Rest = <VarsOf e.Args> <VarsOf e.Rest>;
+  t.Item e.Rest = <VarsOf e.Rest>;
+}
+
+Unbound {
+  (e.Res) (e.Bound) = <UnboundVars <VarsOf e.Res> (e.Bound)>;
+}
+
+UnboundVars {
+  (e.Bound) = ;
+  (V s.K e.I) e.Rest (e.Bound), <IsBound (V s.K e.I) (e.Bound)> : '1' =
+    <UnboundVars e.Rest (e.Bound)>;
+  (V s.K e.I) e.Rest (e.Bound) =
+    "unbound variable " s.K "." e.I "; " <UnboundVars e.Rest (e.Bound)>;
+}
+
+* A bound record is a bracket holding several atoms (V, the kind, and the index
+* characters), so it cannot be matched with `(t.V)`, which is a bracket holding
+* exactly one term. Compare bracket contents instead.
+IsBound {
+  (e.V) (t.Item e.Rest), <EqBracket t.Item (e.V)> : '1' = '1';
+  (e.V) (t.Item e.Rest) = <IsBound (e.V) (e.Rest)>;
+  (e.V) () = ;
+}
+
+EqBracket {
+  (e.X) (e.X) = '1';
+  (e.X) (e.Y) = ;
 }
