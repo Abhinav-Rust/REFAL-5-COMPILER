@@ -4,3 +4,6 @@
 .DS_Store
 Thumbs.db
 
+
+# WorkBuddy AI session state: local tooling, not project content
+.workbuddy-ai/
